@@ -1,22 +1,29 @@
+import sys
+import os
+import openai
 import yaml
-from code_analysis import *
-from code_improvement import *
-from test_generation import *
-from code_refactoring import RefactoringOptions, refactor_code
+import time
+
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..')))
+
+from src.refactoring_tool.ai_functions import call_ai_function
+from src.refactoring_tool.code_refactoring import RefactoringOptions, refactor_code
+
+
+
 
 # Read config file
 with open("config/refactoring_config.yaml", "r") as config_file:
     config = yaml.safe_load(config_file)
+    openai.api_key = config["openai"]["api_key"]
 
-# Define the input code
-input_code = """
-def calculate(a, b):
-    if a < b:
-        result = a * b
-    else:
-        result = a + b
-    return result
-"""
+# Define the input code using AI-generated code
+function_name = "calculate"
+args = ["a", "b"]
+description = "Calculate the result of two numbers based on their relationship."
+
+input_code = call_ai_function(function_name, tuple(args), description)
 
 # Set refactoring options based on config file
 options = RefactoringOptions(
