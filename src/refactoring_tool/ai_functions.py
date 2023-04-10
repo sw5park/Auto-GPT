@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 import json
 import openai
 from functools import lru_cache
@@ -18,7 +18,7 @@ def validate_and_sanitize_input(function: str, args: List[str], description: str
 
 
 @lru_cache(maxsize=100)
-def call_ai_function(function: str, args: List[str], description: str, model: str = "gpt-3.5-turbo", temperature: float = 0.5) -> str:
+def call_ai_function(function: str, args: List[str], description: str, model: str = "gpt-3.5-turbo", temperature: float = 0.5, return_full_response: bool = False) -> Union[str, dict]:
     # Validate and sanitize inputs
     if not validate_and_sanitize_input(function, args, description):
         raise ValueError("Invalid input parameters")
@@ -43,15 +43,14 @@ def call_ai_function(function: str, args: List[str], description: str, model: st
         response = openai.ChatCompletion.create(
             model=model, messages=messages, temperature=temperature
         )
-        # Add this line to print the full response
-        print("API Response:", response)
     except Exception as e:
         print(f"Error calling AI API: {e}")
         return ""
 
-    ai_response = response.choices[0].message["content"]
-
-    # Implement post-processing if needed (e.g., formatting or minor adjustments)
-    # ai_response = post_process(ai_response)
-
-    return ai_response
+    if return_full_response:
+        return response
+    else:
+        ai_response = response.choices[0].message["content"]
+        # Implement post-processing if needed (e.g., formatting or minor adjustments)
+        # ai_response = post_process(ai_response)
+        return ai_response
