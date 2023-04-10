@@ -2,14 +2,13 @@ import sys
 import os
 import openai
 import yaml
-import time
 import argparse
 
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')))
 
-# Import the analyze_code_performance function from your module
 from src.refactoring_tool.code_analysis import CodeAnalysis
+from src.refactoring_tool.ai_functions import call_ai_function
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
@@ -41,13 +40,38 @@ def main():
     print(slow_function(10))
     """
 
-    # Call the analyze_code_performance function
-    performance_suggestions = CodeAnalysis.analyze_code_performance(code_to_analyze)
+    # Print the original code
+    print("Original code:")
+    print(code_to_analyze)
+    print()
 
-    # Print the suggestions
-    print("Performance suggestions:")
-    for suggestion in performance_suggestions:
-        print(f"- {suggestion}")
+    # Analyze different aspects of the code
+    performance_suggestions = CodeAnalysis.analyze_code_performance(code_to_analyze)
+    readability_suggestions = CodeAnalysis.analyze_code_readability(code_to_analyze)
+    modularity_suggestions = CodeAnalysis.analyze_code_modularity(code_to_analyze)
+
+    # Combine suggestions
+    all_suggestions = {
+        "Performance": performance_suggestions,
+        "Readability": readability_suggestions,
+        "Modularity": modularity_suggestions,
+    }
+
+    # Print suggestions
+    for category, suggestions in all_suggestions.items():
+        print(f"{category} suggestions:")
+        for suggestion in suggestions:
+            print(f"- {suggestion.strip()}")
+        print()
+
+    # Apply suggestions one by one
+    modified_code = code_to_analyze
+    for category, suggestions in all_suggestions.items():
+        modified_code = CodeAnalysis.apply_suggestions(modified_code, {category: suggestions})
+
+    # Print the modified code
+    print("\nModified code:")
+    print(modified_code)
 
 if __name__ == "__main__":
     main()
